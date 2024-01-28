@@ -415,22 +415,28 @@ class OpenaiForward(GenericForward):
         valid_payload, payload_info, payload = await self._handle_payload(
             request, route_path
         )
-        uid = payload_info["uid"]
+        if valid_payload:
+            if payload_info['model'].startwith("gpt-4"):
+                raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail=f"model_not_found",
+                    )
+            else:
+                uid = payload_info["uid"]
+                cached_response, cache_key = get_cached_response(
+                    payload_info,
+                    valid_payload,
+                    route_path,
+                    request,
+                    logger_instance=self.get_logger(route_path),
+                )
 
-        cached_response, cache_key = get_cached_response(
-            payload_info,
-            valid_payload,
-            route_path,
-            request,
-            logger_instance=self.get_logger(route_path),
-        )
+                if cached_response:
+                    return cached_response
 
-        if cached_response:
-            return cached_response
-
-        r = await self.send(client_config, data=payload)
-        return StreamingResponse(
-            self.aiter_bytes(r, request, route_path, uid, cache_key),
-            status_code=r.status,
-            media_type=r.headers.get("content-type"),
-        )
+                r = await self.send(client_config, data=payload)
+                return StreamingResponse(
+                    self.aiter_bytes(r, request, route_path, uid, cache_key),
+                    status_code=r.status,
+                    media_type=r.headers.get("content-type"),
+                )
