@@ -415,12 +415,6 @@ class OpenaiForward(GenericForward):
         valid_payload, payload_info, payload = await self._handle_payload(
             request, route_path
         )
-        if valid_payload:
-            if payload_info['model'].startwith("gpt-4"):
-                raise HTTPException(
-                        status_code=status.HTTP_404_NOT_FOUND,
-                        detail=f"model_not_found",
-                    )
         uid = payload_info["uid"]
 
         cached_response, cache_key = get_cached_response(
