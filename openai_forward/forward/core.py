@@ -416,7 +416,7 @@ class OpenaiForward(GenericForward):
             request, route_path
         )
         if valid_payload:
-            if payload_info['model'].startwith("gpt-4"):
+            if payload_info['model'].startswith("gpt-4"):
                 raise HTTPException(
                         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                         detail=f"model_not_found",
